@@ -19,7 +19,7 @@ const logError = console.error
 
 function cacheData () {
   const start = Date.now()
-  fetch('https://api.github.com/users/pablopunk/repos?per_page=100', {
+  fetch('https://api.github.com/users/pablopunk/repos?per_page=100&type=all', {
     headers: {
       Accept: 'application/vnd.github.preview'
     }
