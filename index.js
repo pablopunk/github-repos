@@ -3,6 +3,7 @@ const ms = require('ms')
 
 let data = []
 
+// Controller
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET')
@@ -13,24 +14,12 @@ module.exports = async (req, res) => {
 cacheData()
 setInterval(cacheData, ms('15m'))
 
-function log(text) {
-  return slack(text, process.env.TOKEN_EVENTS)
-}
+const log = console.log
+const logError = console.error
 
-function logError(text) {
-  return slack(text, process.env.TOKEN_ALERTS)
-}
-
-function slack(text, id) {
-  fetch(`https://hooks.slack.com/services/${id}`, {
-    method: 'POST',
-    body: JSON.stringify({text})
-  })
-}
-
-function cacheData() {
+function cacheData () {
   const start = Date.now()
-  fetch('https://api.github.com/orgs/zeit/repos?per_page=100', {
+  fetch('https://api.github.com/users/pablopunk/repos?per_page=100', {
     headers: {
       Accept: 'application/vnd.github.preview'
     }
@@ -46,19 +35,6 @@ function cacheData() {
       return
     }
 
-    // Ugly hack because github sometimes doesn't return
-    // all the right search results :|
-    let featured = 0
-    data_.forEach(({name}) => {
-      if (name === 'hyper' || name === 'next.js' || name === 'micro') {
-        featured++
-      }
-    })
-
-    if (featured !== 3) {
-      return logError(`Error: GitHub did not include all projects (${featured})`)
-    }
-
     data = data_.map(({name, description, stargazers_count, html_url}) => ({
       name,
       description,
@@ -69,7 +45,7 @@ function cacheData() {
     )
 
     log(`Re-built projects cache. ` +
-        `Total: ${data.length} public ▲ZEIT projects. ` +
+        `Total: ${data.length} public projects. ` +
         `Elapsed: ${(new Date() - start)}ms`)
   })
   .catch(err => {
