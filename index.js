@@ -17,38 +17,56 @@ setInterval(cacheData, ms('15m'))
 const log = console.log
 const logError = console.error
 
-function cacheData () {
-  const start = Date.now()
-  fetch('https://api.github.com/users/pablopunk/repos?per_page=100&type=all', {
-    headers: {
-      Accept: 'application/vnd.github.preview'
-    }
-  })
-  .then(res => {
-    if (res.status !== 200) {
-      return logError('Non-200 response code from GitHub: ' + res.status)
-    }
-    return res.json()
-  })
-  .then(data_ => {
-    if (!data_) {
-      return
-    }
+async function getRepos (who, max = 100) {
+  if (!who || typeof who !== 'string') {
+    throw new Error('Provide user or organization')
+  }
 
-    data = data_.map(({name, description, stargazers_count, html_url}) => ({
+  let repos = []
+
+  const res = await fetch(
+    `https://api.github.com/${who}/repos?per_page=${max}&type=all`,
+    {
+      headers: {
+        Accept: 'application/vnd.github.preview'
+      }
+    }
+  )
+  if (res.status !== 200) {
+    return logError('Non-200 response code from GitHub: ' + res.status)
+  }
+  const data_ = await res.json()
+  if (!data_) {
+    return []
+  }
+
+  repos = data_
+    .map(({ name, description, stargazers_count, html_url }) => ({
       name,
       description,
       url: html_url,
       stars: stargazers_count
-    })).sort((p1, p2) =>
-      p2.stars - p1.stars
-    )
+    }))
 
-    log(`Re-built projects cache. ` +
-        `Total: ${data.length} public projects. ` +
-        `Elapsed: ${(new Date() - start)}ms`)
-  })
-  .catch(err => {
-    logError('Error parsing response from GitHub: ' + err.stack)
-  })
+  return repos
+}
+
+async function cacheData () {
+  const start = Date.now()
+
+  const repos = [
+    ...(await getRepos('users/pablopunk')),
+    ...(await getRepos('orgs/ladjs', 1)),
+    ...(await getRepos('orgs/lassjs', 1))
+  ]
+
+  // Order by stars
+  data = repos
+    .sort((p1, p2) => p2.stars - p1.stars)
+
+  log(
+    `Re-built projects cache. ` +
+    `Total: ${data.length} public projects. ` +
+    `Elapsed: ${new Date() - start}ms`
+  )
 }
