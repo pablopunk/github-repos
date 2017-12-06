@@ -10,9 +10,9 @@ module.exports = async (req, res) => {
   return data
 }
 
-// Cache data now and every X ms
+// Cache data now and every hour
 cacheData()
-setInterval(cacheData, ms('15m'))
+setInterval(cacheData, ms('1h'))
 
 const log = console.log
 const logError = console.error
