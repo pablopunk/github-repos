@@ -1,5 +1,7 @@
-const fetch = require('node-fetch')
+'use strict'
+
 const ms = require('ms')
+const getRepos = require('./lib/repos')
 
 let data = []
 
@@ -14,43 +16,6 @@ module.exports = async (req, res) => {
 cacheData()
 setInterval(cacheData, ms('1h'))
 
-const log = console.log
-const logError = console.error
-
-async function getRepos (who, max = 100) {
-  if (!who || typeof who !== 'string') {
-    throw new Error('Provide user or organization')
-  }
-
-  let repos = []
-
-  const res = await fetch(
-    `https://api.github.com/${who}/repos?per_page=${max}&type=all`,
-    {
-      headers: {
-        Accept: 'application/vnd.github.preview'
-      }
-    }
-  )
-  if (res.status !== 200) {
-    return logError('Non-200 response code from GitHub: ' + res.status)
-  }
-  const data_ = await res.json()
-  if (!data_) {
-    return []
-  }
-
-  repos = data_
-    .map(({ name, description, stargazers_count, html_url }) => ({
-      name,
-      description,
-      url: html_url,
-      stars: stargazers_count
-    }))
-
-  return repos
-}
-
 async function cacheData () {
   const start = Date.now()
 
@@ -64,7 +29,7 @@ async function cacheData () {
   data = repos
     .sort((p1, p2) => p2.stars - p1.stars)
 
-  log(
+  console.log(
     `Re-built projects cache. ` +
     `Total: ${data.length} public projects. ` +
     `Elapsed: ${new Date() - start}ms`
