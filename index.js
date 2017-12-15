@@ -7,6 +7,10 @@ let data = []
 
 // Controller
 module.exports = async (req, res) => {
+  if (req.url === '/force') {
+    console.log('Forcing cache reload')
+    await cacheData()
+  }
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET')
   return data
