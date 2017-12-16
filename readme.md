@@ -25,3 +25,6 @@ npm start
   }
 ]
 ```
+### GET /force
+
+**200**: Same as before but it will reload the project cache (so it will take a while)
