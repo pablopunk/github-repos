@@ -31,6 +31,7 @@ async function cacheData () {
 
   // Order by stars
   data = repos
+    .sort((p1, p2) => p2.lastPush < p1.lastPush)
     .sort((p1, p2) => p2.stars - p1.stars)
 
   console.log(
