@@ -1,5 +1,6 @@
 'use strict'
 
+const {parse} = require('url')
 const ms = require('ms')
 const getRepos = require('./lib/repos')
 
@@ -11,9 +12,17 @@ module.exports = async (req, res) => {
     console.log('Forcing cache reload')
     await cacheData()
   }
+
+  let max = data.length
+  const query = parse(req.url, true).query
+  if (query && query.max) {
+    max = parseInt(query.max)
+  }
+
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET')
-  return data
+
+  return data.slice(0, max)
 }
 
 // Cache data now and every hour

@@ -28,3 +28,6 @@ npm start
 ### GET /force
 
 **200**: Same as before but it will reload the project cache (so it will take a while)
+### GET /?max=3
+
+**200**: Retrieve only 3 repos
